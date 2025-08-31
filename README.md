@@ -1,10 +1,8 @@
-## **Aegis Security: End-to-End Workflow Example**
+## **Aegis Security: IIEST-UCO BANK HACKATHON 2025**
 
 Author: Gradient Geeks  
 Date: July 19, 2025  
 Version: 1.2  
-Scenario: A new user, Anurag, has just downloaded the official "UCO Bank App" from the Google Play Store and is opening it for the first time.
-
 ### **Introduction**
 
 This document provides a complete, explicit walkthrough of the Aegis Security Environment's operation, from the initial app launch to the completion of a secure transaction. It details the role of each component, including the underlying technical and mathematical processes that guarantee security.
