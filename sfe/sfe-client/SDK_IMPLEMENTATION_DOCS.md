@@ -466,6 +466,129 @@ println("Root Detected: ${securityCheck.rootDetected}")
 - **FIDO Alliance:** Hardware security module support
 - **Google Play Protect:** Integrity validation compatible
 
+## Certificate Pinning Implementation
+
+### Overview
+
+The SDK now includes certificate pinning support to prevent man-in-the-middle attacks by ensuring that connections are only made to servers presenting expected SSL certificates.
+
+### Configuration
+
+Banks configure certificate pinning when initializing the SDK:
+
+```kotlin
+// Initialize SDK
+val aegisClient = AegisSfeClient.initialize(
+    context = applicationContext,
+    baseUrl = "https://aegis-api.com"
+)
+
+// Configure bank backend with certificate pin
+aegisClient.configureBankBackend(
+    bankApiUrl = "https://api.yourbank.com",
+    certificatePin = "sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    enableLogging = BuildConfig.DEBUG
+)
+```
+
+### Making Secure API Calls
+
+The SDK provides two methods for secure API calls:
+
+#### 1. Standard Secure Call (Certificate Pinning + HMAC)
+```kotlin
+val response = aegisClient.callBankApi(
+    endpoint = "/api/v1/accounts/12345",
+    method = "GET",
+    responseClass = AccountResponse::class.java
+)
+```
+
+#### 2. Encrypted Secure Call (Certificate Pinning + HMAC + AES Encryption)
+```kotlin
+// Requires active session
+val response = aegisClient.callBankApiEncrypted(
+    endpoint = "/api/v1/transfer",
+    method = "POST",
+    body = TransferRequest(amount = 1000.0),
+    responseClass = TransferResponse::class.java
+)
+```
+
+### Obtaining Certificate Pins
+
+#### Method 1: Using OpenSSL
+```bash
+echo | openssl s_client -servername api.yourbank.com -connect api.yourbank.com:443 2>/dev/null | \
+openssl x509 -pubkey -noout | \
+openssl pkey -pubin -outform der | \
+openssl dgst -sha256 -binary | \
+openssl enc -base64
+```
+
+#### Method 2: Using OkHttp's Certificate Pinner
+```kotlin
+// For testing/development only
+val certificatePinner = CertificatePinner.Builder()
+    .add("api.yourbank.com", CertificatePinner.pin(certificate))
+    .build()
+```
+
+### Error Handling
+
+Certificate pinning failures are handled through exceptions:
+
+```kotlin
+try {
+    val result = aegisClient.callBankApi(...)
+} catch (e: SSLPeerUnverifiedException) {
+    // Certificate doesn't match pin
+    Log.e(TAG, "Certificate pinning validation failed")
+} catch (e: ApiException) {
+    // API error (HTTP 4xx/5xx)
+    Log.e(TAG, "API error: ${e.httpCode}")
+} catch (e: SecurityException) {
+    // Security validation failed
+    Log.e(TAG, "Security error: ${e.message}")
+}
+```
+
+### Security Benefits
+
+1. **MITM Protection:** Prevents attackers from intercepting communications even with valid certificates
+2. **CA Compromise Protection:** Protects against compromised Certificate Authorities
+3. **Compliance:** Meets PCI DSS and banking security requirements
+4. **Defense in Depth:** Adds another layer to existing HMAC and encryption
+
+### Certificate Rotation Best Practices
+
+1. **Advance Planning:** Update app with new pin before certificate rotation
+2. **Grace Period:** Support both old and new pins during transition
+3. **Monitoring:** Track pinning failures to detect issues
+4. **Emergency Updates:** Have process for rapid certificate updates
+
+### Implementation Details
+
+The certificate pinning is implemented in `ApiClientFactory.kt`:
+
+```kotlin
+fun createSecureBankApiClient(
+    baseUrl: String,
+    certificatePin: String,
+    enableLogging: Boolean = false
+): OkHttpClient {
+    val hostname = extractHostname(baseUrl)
+    val certificatePinner = CertificatePinner.Builder()
+        .add(hostname, certificatePin)
+        .build()
+    
+    return OkHttpClient.Builder()
+        .certificatePinner(certificatePinner)
+        // ... other configuration
+        .build()
+}
+```
+
 ## Future Enhancements
 
 ### Planned Features
@@ -474,7 +597,7 @@ println("Root Detected: ${securityCheck.rootDetected}")
 2. **Offline Mode:** Local signature verification
 3. **Biometric Integration:** User authentication binding
 4. **StrongBox Support:** Enhanced hardware security
-5. **Certificate Transparency:** Public key pinning
+5. **Multiple Certificate Pins:** Support for certificate rotation
 
 ### API Evolution
 

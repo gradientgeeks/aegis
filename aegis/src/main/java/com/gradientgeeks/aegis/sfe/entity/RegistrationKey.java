@@ -34,6 +34,11 @@ public class RegistrationKey {
     @Column(name = "description")
     private String description;
     
+    @NotBlank
+    @Size(max = 255)
+    @Column(name = "organization", nullable = false)
+    private String organization;
+    
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
     
@@ -86,6 +91,14 @@ public class RegistrationKey {
     
     public void setDescription(String description) {
         this.description = description;
+    }
+    
+    public String getOrganization() {
+        return organization;
+    }
+    
+    public void setOrganization(String organization) {
+        this.organization = organization;
     }
     
     public Boolean getIsActive() {

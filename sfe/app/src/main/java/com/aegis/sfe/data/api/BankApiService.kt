@@ -1,6 +1,8 @@
 package com.aegis.sfe.data.api
 
 import com.aegis.sfe.data.model.*
+import com.gradientgeeks.aegis.sfe_client.session.KeyExchangeService
+import com.gradientgeeks.aegis.sfe_client.encryption.PayloadEncryptionService
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -41,4 +43,27 @@ interface BankApiService {
     
     @GET("health")
     suspend fun getHealthStatus(): Response<Map<String, Any>>
+    
+    // Session management endpoints
+    @POST("session/key-exchange")
+    suspend fun initiateKeyExchange(
+        @Body request: KeyExchangeService.KeyExchangeRequest
+    ): Response<KeyExchangeService.KeyExchangeResponse>
+    
+    @DELETE("session/{sessionId}")
+    suspend fun terminateSession(
+        @Path("sessionId") sessionId: String
+    ): Response<Map<String, String>>
+    
+    @GET("session/{sessionId}/status")
+    suspend fun checkSessionStatus(
+        @Path("sessionId") sessionId: String
+    ): Response<Map<String, Any>>
+    
+    // Secure transfer endpoint (encrypted payload)
+    @POST("transactions/transfer/secure")
+    suspend fun secureTransferMoney(
+        @Body request: PayloadEncryptionService.SecureRequest,
+        @Header("X-Session-Id") sessionId: String
+    ): Response<PayloadEncryptionService.SecureResponse>
 }

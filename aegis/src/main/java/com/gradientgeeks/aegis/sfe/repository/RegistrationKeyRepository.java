@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -21,4 +22,8 @@ public interface RegistrationKeyRepository extends JpaRepository<RegistrationKey
     boolean existsByClientId(String clientId);
     
     boolean existsByRegistrationKey(String registrationKey);
+    
+    List<RegistrationKey> findByOrganization(String organization);
+    
+    Optional<RegistrationKey> findByClientIdAndOrganization(String clientId, String organization);
 }

@@ -3,6 +3,8 @@ package com.aegis.sfe.data.repository
 import android.util.Log
 import com.aegis.sfe.data.api.ApiClientFactory
 import com.aegis.sfe.data.model.*
+import com.gradientgeeks.aegis.sfe_client.session.KeyExchangeService
+import com.gradientgeeks.aegis.sfe_client.encryption.PayloadEncryptionService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -150,4 +152,78 @@ class BankRepository {
             else -> "Error ${response.code()}: ${response.message()}"
         }
     }
+    
+    // Session management methods
+    
+    fun initiateKeyExchange(request: KeyExchangeService.KeyExchangeRequest): Flow<ApiResult<KeyExchangeService.KeyExchangeResponse>> = flow {
+        emit(ApiResult.Loading("Initiating secure session..."))
+        try {
+            val response = apiService.initiateKeyExchange(request)
+            if (response.isSuccessful) {
+                response.body()?.let { keyExchangeResponse ->
+                    emit(ApiResult.Success(keyExchangeResponse))
+                } ?: emit(ApiResult.Error("Key exchange response is empty"))
+            } else {
+                emit(ApiResult.Error(parseErrorMessage(response), response.code()))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initiating key exchange", e)
+            emit(ApiResult.Error("Network error: ${e.message}"))
+        }
+    }.flowOn(Dispatchers.IO)
+    
+    fun terminateSession(sessionId: String): Flow<ApiResult<Map<String, String>>> = flow {
+        emit(ApiResult.Loading("Terminating session..."))
+        try {
+            val response = apiService.terminateSession(sessionId)
+            if (response.isSuccessful) {
+                response.body()?.let { result ->
+                    emit(ApiResult.Success(result))
+                } ?: emit(ApiResult.Error("Termination response is empty"))
+            } else {
+                emit(ApiResult.Error(parseErrorMessage(response), response.code()))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error terminating session", e)
+            emit(ApiResult.Error("Network error: ${e.message}"))
+        }
+    }.flowOn(Dispatchers.IO)
+    
+    fun checkSessionStatus(sessionId: String): Flow<ApiResult<Map<String, Any>>> = flow {
+        emit(ApiResult.Loading("Checking session status..."))
+        try {
+            val response = apiService.checkSessionStatus(sessionId)
+            if (response.isSuccessful) {
+                response.body()?.let { status ->
+                    emit(ApiResult.Success(status))
+                } ?: emit(ApiResult.Error("Session status is empty"))
+            } else {
+                emit(ApiResult.Error(parseErrorMessage(response), response.code()))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking session status", e)
+            emit(ApiResult.Error("Network error: ${e.message}"))
+        }
+    }.flowOn(Dispatchers.IO)
+    
+    // Secure transfer with encrypted payload
+    fun secureTransferMoney(
+        secureRequest: PayloadEncryptionService.SecureRequest,
+        sessionId: String
+    ): Flow<ApiResult<PayloadEncryptionService.SecureResponse>> = flow {
+        emit(ApiResult.Loading("Processing secure transfer..."))
+        try {
+            val response = apiService.secureTransferMoney(secureRequest, sessionId)
+            if (response.isSuccessful) {
+                response.body()?.let { secureResponse ->
+                    emit(ApiResult.Success(secureResponse))
+                } ?: emit(ApiResult.Error("Secure transfer response is empty"))
+            } else {
+                emit(ApiResult.Error(parseErrorMessage(response), response.code()))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error processing secure transfer", e)
+            emit(ApiResult.Error("Network error: ${e.message}"))
+        }
+    }.flowOn(Dispatchers.IO)
 }

@@ -36,4 +36,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     
     @Query("SELECT t FROM Transaction t WHERE t.deviceId = :deviceId ORDER BY t.createdAt DESC")
     List<Transaction> findByDeviceId(@Param("deviceId") String deviceId);
+    
+    List<Transaction> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    
+    @Query("SELECT t FROM Transaction t WHERE (t.fromAccountId IN :accountIds OR t.toAccountId IN :accountIds) AND t.createdAt BETWEEN :startDate AND :endDate")
+    List<Transaction> findByAccountIdsAndDateRange(@Param("accountIds") List<UUID> accountIds, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

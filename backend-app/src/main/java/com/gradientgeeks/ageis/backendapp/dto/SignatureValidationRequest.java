@@ -1,6 +1,7 @@
 package com.gradientgeeks.ageis.backendapp.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import java.util.Map;
 
 /**
  * DTO for signature validation request to Aegis API.
@@ -16,6 +17,12 @@ public class SignatureValidationRequest {
     @NotBlank(message = "String to sign is required")
     private String stringToSign;
     
+    @NotBlank(message = "Client ID is required")
+    private String clientId;
+    
+    // User metadata for policy enforcement
+    private Map<String, Object> userMetadata;
+    
     // Constructors
     public SignatureValidationRequest() {
     }
@@ -24,6 +31,13 @@ public class SignatureValidationRequest {
         this.deviceId = deviceId;
         this.signature = signature;
         this.stringToSign = stringToSign;
+    }
+    
+    public SignatureValidationRequest(String deviceId, String signature, String stringToSign, String clientId) {
+        this.deviceId = deviceId;
+        this.signature = signature;
+        this.stringToSign = stringToSign;
+        this.clientId = clientId;
     }
     
     // Getters and Setters
@@ -49,5 +63,21 @@ public class SignatureValidationRequest {
     
     public void setStringToSign(String stringToSign) {
         this.stringToSign = stringToSign;
+    }
+    
+    public String getClientId() {
+        return clientId;
+    }
+    
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+    
+    public Map<String, Object> getUserMetadata() {
+        return userMetadata;
+    }
+    
+    public void setUserMetadata(Map<String, Object> userMetadata) {
+        this.userMetadata = userMetadata;
     }
 }

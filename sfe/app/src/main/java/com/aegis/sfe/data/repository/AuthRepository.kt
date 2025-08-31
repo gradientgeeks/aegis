@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -111,6 +112,96 @@ class AuthRepository {
             emit(ApiResult.Error("Network error: ${e.message}"))
         }
     }.flowOn(Dispatchers.IO)
+    
+    /**
+     * Initiates device rebinding process.
+     * 
+     * @param username The username
+     * @param deviceId The new device ID to bind
+     * @param aadhaarLast4 Last 4 digits of Aadhaar
+     * @param panNumber PAN number for verification
+     * @param securityAnswers Security question answers
+     * @param verificationMethod The verification method used
+     * @return true if rebinding was successful, false otherwise
+     */
+    suspend fun rebindDevice(
+        username: String, 
+        deviceId: String, 
+        aadhaarLast4: String,
+        panNumber: String,
+        securityAnswers: Map<String, String>,
+        verificationMethod: String = "AADHAAR_PAN_SECURITY"
+    ): Boolean = kotlinx.coroutines.withContext(Dispatchers.IO) {
+        try {
+            Log.d(TAG, "Initiating device rebinding - User: $username, Device: $deviceId")
+            
+            // Create rebinding request body with actual verification data
+            val rebindRequest = mapOf(
+                "username" to username,
+                "verificationMethod" to verificationMethod,
+                "aadhaarLast4" to aadhaarLast4,
+                "panNumber" to panNumber,
+                "securityAnswers" to securityAnswers
+            )
+            val requestJson = gson.toJson(rebindRequest)
+            
+            // Create HTTP client with timeout
+            val client = OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .addInterceptor(HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                })
+                .build()
+            
+            // Build request URL
+            val baseUrl = UCOBankApplication.BANK_API_BASE_URL
+            val url = "$baseUrl/auth/rebind-device"
+            
+            Log.d(TAG, "Rebinding URL: $url")
+            Log.d(TAG, "Request body: $requestJson")
+            
+            val request = Request.Builder()
+                .url(url)
+                .post(requestJson.toRequestBody("application/json".toMediaType()))
+                .header("Content-Type", "application/json")
+                .header("X-Device-Id", deviceId)
+                .build()
+            
+            // Execute request
+            val response = client.newCall(request).execute()
+            
+            if (response.isSuccessful) {
+                val responseBody = response.body?.string()
+                Log.d(TAG, "Device rebinding response: $responseBody")
+                
+                // Parse response to check if successful
+                try {
+                    val responseJson = gson.fromJson(responseBody, Map::class.java)
+                    val success = responseJson["success"] as? Boolean
+                    
+                    // Store new auth token if provided
+                    val token = responseJson["token"] as? String
+                    if (token != null) {
+                        UCOBankApplication.authToken = token
+                    }
+                    
+                    success == true
+                } catch (e: Exception) {
+                    Log.w(TAG, "Could not parse rebinding response", e)
+                    false
+                }
+            } else {
+                val errorBody = response.body?.string()
+                Log.e(TAG, "Device rebinding failed: ${response.code} - $errorBody")
+                false
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during device rebinding", e)
+            false
+        }
+    }
 }
 
 data class LoginResponse(

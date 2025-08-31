@@ -47,6 +47,7 @@ public class RegistrationKeyService {
                 registrationKey,
                 request.getDescription()
             );
+            entity.setOrganization(request.getOrganization());
             entity.setExpiresAt(request.getExpiresAt());
             
             RegistrationKey savedEntity = registrationKeyRepository.save(entity);
@@ -151,5 +152,24 @@ public class RegistrationKeyService {
             entity.getExpiresAt(),
             entity.getCreatedAt()
         );
+    }
+    
+    public List<RegistrationKeyResponse> getRegistrationKeysByOrganization(String organization) {
+        logger.info("Retrieving registration keys for organization: {}", organization);
+        
+        List<RegistrationKey> keys = registrationKeyRepository.findByOrganization(organization);
+        
+        return keys.stream()
+            .map(this::convertToResponse)
+            .collect(Collectors.toList());
+    }
+    
+    public Optional<RegistrationKeyResponse> getRegistrationKeyByClientIdAndOrganization(
+            String clientId, String organization) {
+        logger.info("Retrieving registration key for clientId: {} and organization: {}", 
+            clientId, organization);
+        
+        return registrationKeyRepository.findByClientIdAndOrganization(clientId, organization)
+            .map(this::convertToResponse);
     }
 }

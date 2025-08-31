@@ -23,9 +23,13 @@ import com.aegis.sfe.ui.viewmodel.AuthViewModel
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
+    onNavigateToRebinding: (String) -> Unit = { },
     viewModel: AuthViewModel = viewModel()
 ) {
     val loginState by viewModel.loginState.collectAsState()
+    val deviceBlockedState by viewModel.deviceBlockedState.collectAsState()
+    val rebindingState by viewModel.rebindingState.collectAsState()
+    
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -40,6 +44,22 @@ fun LoginScreen(
             } catch (e: Exception) {
                 android.util.Log.e("LoginScreen", "Error during navigation", e)
             }
+        }
+    }
+    
+    // Handle device blocked state
+    deviceBlockedState?.let { blockedState ->
+        DeviceBlockedDialog(
+            state = blockedState,
+            onDismiss = { viewModel.clearDeviceBlockedState() }
+        )
+    }
+    
+    // Handle device rebinding state - navigate to rebinding screen
+    LaunchedEffect(rebindingState) {
+        rebindingState?.let { rebindState ->
+            onNavigateToRebinding(rebindState.username)
+            viewModel.clearRebindingState()
         }
     }
     
@@ -256,4 +276,62 @@ fun LoginScreen(
             }
         }
     }
+}
+
+/**
+ * Dialog shown when device is blocked.
+ */
+@Composable
+fun DeviceBlockedDialog(
+    state: com.aegis.sfe.ui.viewmodel.DeviceBlockedState,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { /* Cannot dismiss */ },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Block,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text(
+                    text = if (state.isTemporary) "Device Temporarily Blocked" else "Device Blocked",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+        text = {
+            Column {
+                Text(
+                    text = state.reason,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                if (state.contactSupport) {
+                    Text(
+                        text = "Please contact customer support for assistance.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        text = "Please try again later or contact support if the issue persists.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("OK")
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.error
+    )
 }

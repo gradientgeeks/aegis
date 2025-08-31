@@ -6,6 +6,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,6 +39,7 @@ fun TransferScreen(
     var remarks by remember { mutableStateOf("") }
     var isToAccountValid by remember { mutableStateOf(false) }
     var showValidation by remember { mutableStateOf(false) }
+    var useEncryption by remember { mutableStateOf(true) } // Default to encrypted transfer
     
     // Handle transfer success
     LaunchedEffect(transferState.success) {
@@ -62,7 +65,7 @@ fun TransferScreen(
                 title = { Text("Transfer Money") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -113,6 +116,46 @@ fun TransferScreen(
             
             Spacer(modifier = Modifier.height(8.dp))
             
+            // Encryption Toggle
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "End-to-End Encryption",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            "Encrypt transfer data using session keys",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                        )
+                    }
+                    Switch(
+                        checked = useEncryption,
+                        onCheckedChange = { useEncryption = it }
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
             // Transfer Button
             Button(
                 onClick = {
@@ -126,7 +169,11 @@ fun TransferScreen(
                             description = description.ifEmpty { null },
                             remarks = remarks.ifEmpty { null }
                         )
-                        viewModel.transferMoney(transferRequest)
+                        if (useEncryption) {
+                            viewModel.transferMoneySecure(transferRequest)
+                        } else {
+                            viewModel.transferMoney(transferRequest)
+                        }
                     }
                 },
                 enabled = !transferState.isLoading,
@@ -142,7 +189,7 @@ fun TransferScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Processing Transfer...")
                 } else {
-                    Icon(Icons.Default.Send, contentDescription = null)
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Transfer Money")
                 }
@@ -234,7 +281,7 @@ private fun FromAccountSection(
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier
-                    .menuAnchor()
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
                     .fillMaxWidth()
             )
             

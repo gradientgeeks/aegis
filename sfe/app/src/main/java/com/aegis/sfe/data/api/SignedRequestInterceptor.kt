@@ -37,9 +37,10 @@ class SignedRequestInterceptor : Interceptor {
             
             // Sign the request using Aegis SDK
             // Note: signRequest is a synchronous method, not a suspend function
+            // Use only the path without query parameters for signing (to match backend validation)
             val signedHeaders = UCOBankApplication.aegisClient.signRequest(
                 method = original.method,
-                uri = original.url.encodedPath + (original.url.encodedQuery?.let { "?$it" } ?: ""),
+                uri = original.url.encodedPath,
                 body = requestBody
             )
             
@@ -58,6 +59,22 @@ class SignedRequestInterceptor : Interceptor {
             // Add auth token if available
             UCOBankApplication.authToken?.let { token ->
                 requestBuilder.header("Authorization", "Bearer $token")
+            }
+            
+            // Add transaction amount for policy validation if it's a transfer
+            if (original.url.encodedPath.contains("/transfer") && requestBody != null) {
+                try {
+                    // Extract amount from request body for policy validation
+                    // This is a simple extraction - in production use proper JSON parsing
+                    val amountRegex = """"amount"\s*:\s*([0-9.]+)""".toRegex()
+                    val matchResult = amountRegex.find(requestBody)
+                    matchResult?.groupValues?.get(1)?.let { amount ->
+                        requestBuilder.header("X-Transaction-Amount", amount)
+                        Log.d(TAG, "Added transaction amount header: $amount")
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Could not extract transaction amount", e)
+                }
             }
             
             val signedRequest = requestBuilder.build()

@@ -9,6 +9,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -44,6 +46,26 @@ public class User {
 
     @Column(nullable = false)
     private Boolean isActive = true;
+    
+    // Device binding fields
+    @Size(max = 255)
+    @Column(name = "bound_device_id")
+    private String boundDeviceId;
+    
+    @Column(name = "device_binding_timestamp")
+    private LocalDateTime deviceBindingTimestamp;
+    
+    @Column(name = "requires_device_rebinding")
+    private Boolean requiresDeviceRebinding = false;
+    
+    // Multiple device support
+    @ElementCollection
+    @CollectionTable(name = "user_devices", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "device_id")
+    private List<String> deviceIds = new ArrayList<>();
+    
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
@@ -136,5 +158,85 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public String getBoundDeviceId() {
+        return boundDeviceId;
+    }
+    
+    public void setBoundDeviceId(String boundDeviceId) {
+        this.boundDeviceId = boundDeviceId;
+    }
+    
+    public LocalDateTime getDeviceBindingTimestamp() {
+        return deviceBindingTimestamp;
+    }
+    
+    public void setDeviceBindingTimestamp(LocalDateTime deviceBindingTimestamp) {
+        this.deviceBindingTimestamp = deviceBindingTimestamp;
+    }
+    
+    public Boolean getRequiresDeviceRebinding() {
+        return requiresDeviceRebinding;
+    }
+    
+    public void setRequiresDeviceRebinding(Boolean requiresDeviceRebinding) {
+        this.requiresDeviceRebinding = requiresDeviceRebinding;
+    }
+    
+    public List<String> getDeviceIds() {
+        return deviceIds;
+    }
+    
+    public void setDeviceIds(List<String> deviceIds) {
+        this.deviceIds = deviceIds;
+    }
+    
+    public LocalDateTime getLastLogin() {
+        return lastLogin;
+    }
+    
+    public void setLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+    
+    // Helper method to get name (alias for fullName)
+    public String getName() {
+        return fullName;
+    }
+    
+    /**
+     * Checks if the user is bound to a specific device.
+     * @return true if user has a bound device, false otherwise
+     */
+    public boolean hasDeviceBinding() {
+        return boundDeviceId != null && !boundDeviceId.trim().isEmpty();
+    }
+    
+    /**
+     * Checks if the device ID matches the user's bound device.
+     * @param deviceId The device ID to check
+     * @return true if device matches bound device, false otherwise
+     */
+    public boolean isDeviceBound(String deviceId) {
+        return hasDeviceBinding() && boundDeviceId.equals(deviceId);
+    }
+    
+    /**
+     * Binds the user to a specific device.
+     * @param deviceId The device ID to bind to
+     */
+    public void bindToDevice(String deviceId) {
+        this.boundDeviceId = deviceId;
+        this.deviceBindingTimestamp = LocalDateTime.now();
+        this.requiresDeviceRebinding = false;
+    }
+    
+    /**
+     * Marks the user as requiring device rebinding.
+     * This is used when the user needs to verify their identity on a new device.
+     */
+    public void requireDeviceRebinding() {
+        this.requiresDeviceRebinding = true;
     }
 }

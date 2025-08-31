@@ -1,6 +1,7 @@
 package com.gradientgeeks.aegis.sfe.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class DeviceRegistrationRequest {
@@ -15,12 +16,16 @@ public class DeviceRegistrationRequest {
     
     private String integrityToken;
     
+    @NotNull(message = "Device fingerprint is required")
+    private DeviceFingerprintDto deviceFingerprint;
+    
     public DeviceRegistrationRequest() {}
     
-    public DeviceRegistrationRequest(String clientId, String registrationKey, String integrityToken) {
+    public DeviceRegistrationRequest(String clientId, String registrationKey, String integrityToken, DeviceFingerprintDto deviceFingerprint) {
         this.clientId = clientId;
         this.registrationKey = registrationKey;
         this.integrityToken = integrityToken;
+        this.deviceFingerprint = deviceFingerprint;
     }
     
     public String getClientId() {
@@ -47,12 +52,21 @@ public class DeviceRegistrationRequest {
         this.integrityToken = integrityToken;
     }
     
+    public DeviceFingerprintDto getDeviceFingerprint() {
+        return deviceFingerprint;
+    }
+    
+    public void setDeviceFingerprint(DeviceFingerprintDto deviceFingerprint) {
+        this.deviceFingerprint = deviceFingerprint;
+    }
+    
     @Override
     public String toString() {
         return "DeviceRegistrationRequest{" +
                 "clientId='" + clientId + '\'' +
                 ", registrationKey='[REDACTED]'" +
                 ", integrityToken='" + (integrityToken != null ? "[PRESENT]" : "null") + '\'' +
+                ", deviceFingerprint=" + (deviceFingerprint != null ? "[PRESENT]" : "null") +
                 '}';
     }
 }

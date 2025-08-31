@@ -1,6 +1,7 @@
 package com.gradientgeeks.ageis.backendapp.config;
 
 import com.gradientgeeks.ageis.backendapp.filter.AegisAuthenticationFilter;
+import com.gradientgeeks.ageis.backendapp.filter.JwtAuthenticationFilter;
 import com.gradientgeeks.ageis.backendapp.security.AegisSecurityInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,25 +24,40 @@ public class SecurityConfig implements WebMvcConfigurer {
     
     private final AegisSecurityInterceptor aegisSecurityInterceptor;
     private final AegisAuthenticationFilter aegisAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     
     public SecurityConfig(AegisSecurityInterceptor aegisSecurityInterceptor,
-                         AegisAuthenticationFilter aegisAuthenticationFilter) {
+                         AegisAuthenticationFilter aegisAuthenticationFilter,
+                         JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.aegisSecurityInterceptor = aegisSecurityInterceptor;
         this.aegisAuthenticationFilter = aegisAuthenticationFilter;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .cors(cors -> cors.configurationSource(request -> {
+                var corsConfig = new org.springframework.web.cors.CorsConfiguration();
+                corsConfig.setAllowedOrigins(java.util.List.of("*"));
+                corsConfig.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                corsConfig.setAllowedHeaders(java.util.List.of("*"));
+                corsConfig.setMaxAge(3600L);
+                return corsConfig;
+            }))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()  // Allow all OPTIONS requests
                 .requestMatchers("/api/v1/health/**", "/actuator/**").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()  // Allow auth endpoints
+                .requestMatchers("/api/admin/login").permitAll()  // Allow admin login
+                .requestMatchers("/api/admin/**").authenticated()  // Protect other admin endpoints
                 .requestMatchers("/api/v1/**").authenticated()
                 .anyRequest().denyAll()
             )
-            .addFilterBefore(aegisAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(aegisAuthenticationFilter, JwtAuthenticationFilter.class);
         
         return http.build();
     }

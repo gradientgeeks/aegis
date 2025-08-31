@@ -1,8 +1,0 @@
--- Fix permissions for ucobank_user on ucobank_db
-\c ucobank_db
-GRANT ALL PRIVILEGES ON SCHEMA public TO ucobank_user;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ucobank_user;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ucobank_user;
-GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO ucobank_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ucobank_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ucobank_user;

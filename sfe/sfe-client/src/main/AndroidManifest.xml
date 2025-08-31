@@ -5,6 +5,16 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     
+    <!-- Package visibility permission for enhanced fraud detection (only for high similarity devices) -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    
+    <!-- Declare intent to query all packages for fraud detection (Android 11+) -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+        </intent>
+    </queries>
+    
     <!-- Keystore access is handled through system APIs, no special permissions needed -->
     
 </manifest>

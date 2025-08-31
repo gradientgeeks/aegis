@@ -16,6 +16,8 @@ public class RegistrationKeyRequest {
     
     private LocalDateTime expiresAt;
     
+    private String organization;
+    
     public RegistrationKeyRequest() {}
     
     public RegistrationKeyRequest(String clientId, String description, LocalDateTime expiresAt) {
@@ -46,6 +48,14 @@ public class RegistrationKeyRequest {
     
     public void setExpiresAt(LocalDateTime expiresAt) {
         this.expiresAt = expiresAt;
+    }
+    
+    public String getOrganization() {
+        return organization;
+    }
+    
+    public void setOrganization(String organization) {
+        this.organization = organization;
     }
     
     @Override

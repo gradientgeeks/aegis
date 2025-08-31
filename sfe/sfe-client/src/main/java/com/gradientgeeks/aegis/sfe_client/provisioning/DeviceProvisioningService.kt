@@ -9,6 +9,8 @@ import com.gradientgeeks.aegis.sfe_client.crypto.CryptographyService
 import com.gradientgeeks.aegis.sfe_client.model.DeviceRegistrationRequest
 import com.gradientgeeks.aegis.sfe_client.model.DeviceRegistrationResponse
 import com.gradientgeeks.aegis.sfe_client.security.IntegrityValidationService
+import com.gradientgeeks.aegis.sfe_client.security.DeviceFingerprintingService
+import com.gradientgeeks.aegis.sfe_client.security.toApiData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
@@ -33,7 +35,8 @@ class DeviceProvisioningService(
     private val context: Context,
     private val apiService: AegisApiService,
     private val cryptographyService: CryptographyService,
-    private val integrityService: IntegrityValidationService
+    private val integrityService: IntegrityValidationService,
+    private val fingerprintingService: DeviceFingerprintingService
 ) {
     
     companion object {
@@ -151,11 +154,18 @@ class DeviceProvisioningService(
             val integrityToken = integrityService.getIntegrityToken(nonce)
             Log.d(TAG, "Obtained integrity token: ${if (integrityToken != null) "present" else "null"}")
             
+            // Step 3.5: Generate device fingerprint for fraud detection
+            Log.d(TAG, "Generating device fingerprint for fraud detection")
+            val deviceFingerprint = fingerprintingService.generateDeviceFingerprint()
+            val fingerprintData = deviceFingerprint.toApiData()
+            Log.d(TAG, "Device fingerprint generated: ${fingerprintData.compositeHash}")
+            
             // Step 4: Create registration request
             val registrationRequest = DeviceRegistrationRequest(
                 clientId = clientId,
                 registrationKey = registrationKey,
-                integrityToken = integrityToken
+                integrityToken = integrityToken,
+                deviceFingerprint = fingerprintData
             )
             
             // Step 5: Call registration API

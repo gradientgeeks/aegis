@@ -1,0 +1,27 @@
+# Build artifacts
+build/
+target/
+*.jar
+*.war
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+*.txt
+
+# Logs
+*.log

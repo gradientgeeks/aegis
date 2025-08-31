@@ -23,7 +23,8 @@ fun DeviceProvisioningScreen(
     viewModel: DeviceProvisioningViewModel = viewModel()
 ) {
     val provisioningState by viewModel.provisioningState.collectAsState()
-    val securityCheckResult by viewModel.securityCheckResult.collectAsState()
+    // Security check is commented out - focusing on HMAC validation and key exchange
+    // val securityCheckResult by viewModel.securityCheckResult.collectAsState()
     
     LaunchedEffect(provisioningState.isProvisioned) {
         if (provisioningState.isProvisioned) {
@@ -70,12 +71,14 @@ fun DeviceProvisioningScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Security Status Card
+            // Security Status Card is commented out - focusing on HMAC validation and key exchange
+            /*
             securityCheckResult?.let { security ->
                 SecurityStatusCard(securityResult = security)
             }
             
             Spacer(modifier = Modifier.height(8.dp))
+            */
             
             // Provisioning Status
             if (provisioningState.isProvisioned) {
@@ -167,6 +170,8 @@ fun DeviceProvisioningScreen(
     }
 }
 
+// Security check is commented out - focusing on HMAC validation and key exchange
+/*
 @Composable
 private fun SecurityStatusCard(securityResult: com.aegis.sfe.data.model.SecurityCheckResult) {
     Card(
@@ -211,7 +216,10 @@ private fun SecurityStatusCard(securityResult: com.aegis.sfe.data.model.Security
         }
     }
 }
+*/
 
+// Security check is commented out - focusing on HMAC validation and key exchange
+/*
 @Composable
 private fun SecurityCheckItem(label: String, isSecure: Boolean) {
     Row(
@@ -233,6 +241,7 @@ private fun SecurityCheckItem(label: String, isSecure: Boolean) {
         )
     }
 }
+*/
 
 @Composable
 private fun ProvisionedStatusCard(deviceId: String?) {

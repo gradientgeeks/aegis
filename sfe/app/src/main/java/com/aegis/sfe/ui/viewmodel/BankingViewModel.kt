@@ -5,6 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aegis.sfe.data.model.*
 import com.aegis.sfe.data.repository.BankRepository
+import com.aegis.sfe.UCOBankApplication
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.gradientgeeks.aegis.sfe_client.encryption.PayloadEncryptionService
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -184,6 +189,177 @@ class BankingViewModel : ViewModel() {
         _selectedAccount.value?.let { account ->
             loadTransactionHistory(account.accountNumber)
         }
+    }
+    
+    // Session management and encrypted transfer methods
+    
+    private val objectMapper = jacksonObjectMapper()
+    
+    /**
+     * Initiates a secure session for encrypted communication.
+     */
+    fun initiateSecureSession() {
+        viewModelScope.launch {
+            try {
+                val aegisClient = UCOBankApplication.aegisClient
+                
+                // Initiate key exchange
+                val keyExchangeRequest = aegisClient.initiateSession()
+                if (keyExchangeRequest == null) {
+                    _uiState.value = _uiState.value.copy(
+                        error = "Failed to initiate session: SDK not ready"
+                    )
+                    return@launch
+                }
+                
+                // Send key exchange request to server
+                repository.initiateKeyExchange(keyExchangeRequest!!).collect { result ->
+                    when (result) {
+                        is ApiResult.Loading -> {
+                            _uiState.value = _uiState.value.copy(isLoading = true)
+                        }
+                        is ApiResult.Success -> {
+                            // Establish session with server response
+                            val established = aegisClient.establishSession(result.data)
+                            if (established) {
+                                Log.d(TAG, "Secure session established: ${result.data.sessionId}")
+                                _uiState.value = _uiState.value.copy(
+                                    isLoading = false,
+                                    error = null
+                                )
+                            } else {
+                                _uiState.value = _uiState.value.copy(
+                                    isLoading = false,
+                                    error = "Failed to establish session"
+                                )
+                            }
+                        }
+                        is ApiResult.Error -> {
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                error = "Session error: ${result.message}"
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error initiating secure session", e)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Session error: ${e.message}"
+                )
+            }
+        }
+    }
+    
+    /**
+     * Performs a money transfer with encrypted payload.
+     */
+    fun transferMoneySecure(transferRequest: TransferRequest) {
+        viewModelScope.launch {
+            val aegisClient = UCOBankApplication.aegisClient
+            
+            // Check if we have an active session
+            if (!aegisClient.hasActiveSession()) {
+                // Initiate session first
+                initiateSecureSession()
+                // Wait for session to be established
+                kotlinx.coroutines.delay(2000)
+                
+                if (!aegisClient.hasActiveSession()) {
+                    _transferState.value = _transferState.value.copy(
+                        isLoading = false,
+                        error = "No secure session available"
+                    )
+                    return@launch
+                }
+            }
+            
+            try {
+                // Convert transfer request to JSON
+                val requestJson = objectMapper.writeValueAsString(transferRequest)
+                
+                // Create secure request with encrypted payload
+                val secureRequest = aegisClient.createSecureRequest(
+                    payload = requestJson,
+                    method = "POST",
+                    uri = "/api/v1/transactions/transfer/secure"
+                )
+                
+                if (secureRequest == null) {
+                    _transferState.value = _transferState.value.copy(
+                        isLoading = false,
+                        error = "Failed to encrypt request"
+                    )
+                    return@launch
+                }
+                
+                val sessionId = aegisClient.getCurrentSessionId() ?: return@launch
+                
+                // Send encrypted request
+                repository.secureTransferMoney(secureRequest!!, sessionId).collect { result ->
+                    when (result) {
+                        is ApiResult.Loading -> {
+                            _transferState.value = _transferState.value.copy(
+                                isLoading = true,
+                                error = null
+                            )
+                        }
+                        is ApiResult.Success -> {
+                            // Decrypt the response
+                            val decryptedJson = aegisClient.extractSecureResponse(result.data)
+                            if (decryptedJson != null) {
+                                val transferResponse: TransferResponse = objectMapper.readValue(decryptedJson)
+                                
+                                _transferState.value = _transferState.value.copy(
+                                    isLoading = false,
+                                    success = transferResponse,
+                                    error = null
+                                )
+                                
+                                // Refresh account balance
+                                loadUserAccounts()
+                                
+                                Log.d(TAG, "Secure transfer completed: ${transferResponse.transactionReference}")
+                            } else {
+                                _transferState.value = _transferState.value.copy(
+                                    isLoading = false,
+                                    error = "Failed to decrypt response"
+                                )
+                            }
+                        }
+                        is ApiResult.Error -> {
+                            _transferState.value = _transferState.value.copy(
+                                isLoading = false,
+                                error = result.message,
+                                success = null
+                            )
+                            Log.e(TAG, "Secure transfer failed: ${result.message}")
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error processing secure transfer", e)
+                _transferState.value = _transferState.value.copy(
+                    isLoading = false,
+                    error = "Transfer error: ${e.message}"
+                )
+            }
+        }
+    }
+    
+    /**
+     * Checks if encrypted transfers are enabled (session active).
+     */
+    fun isSecureTransferEnabled(): Boolean {
+        return UCOBankApplication.aegisClient.hasActiveSession()
+    }
+    
+    /**
+     * Clears the secure session.
+     */
+    fun clearSecureSession() {
+        UCOBankApplication.aegisClient.clearSession()
     }
 }
 

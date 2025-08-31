@@ -52,3 +52,21 @@ out/
 .cxx
 local.properties
 /build
+
+# Security and Configuration Files
+**/application.properties
+**/application-*.properties
+**/application-*.yml
+**/application-*.yaml
+**/*.env
+**/.env.*
+**/secrets.*
+**/*secret*
+**/*.key
+**/*.pem
+**/*.p12
+**/*.jks
+**/*keystore*
+**/*truststore*
+**/config.properties
+**/database.properties

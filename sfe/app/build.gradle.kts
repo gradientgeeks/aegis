@@ -16,6 +16,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        externalNativeBuild {
+            cmake {
+                cppFlags += ""
+            }
+        }
     }
 
     buildTypes {
@@ -33,6 +39,13 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 }
 
@@ -69,6 +82,8 @@ dependencies {
     
     // JSON parsing
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
     
     // Date/Time handling
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")

@@ -5,6 +5,7 @@ public class SignatureValidationResponse {
     private boolean isValid;
     private String message;
     private String deviceId;
+    private Boolean requiresMfa;
     
     public SignatureValidationResponse() {}
     
@@ -48,12 +49,22 @@ public class SignatureValidationResponse {
         this.deviceId = deviceId;
     }
     
+    public Boolean getRequiresMfa() {
+        return requiresMfa;
+    }
+    
+    public void setRequiresMfa(Boolean requiresMfa) {
+        this.requiresMfa = requiresMfa;
+    }
+    
+    
     @Override
     public String toString() {
         return "SignatureValidationResponse{" +
                 "isValid=" + isValid +
                 ", message='" + message + '\'' +
                 ", deviceId='" + deviceId + '\'' +
+                ", requiresMfa=" + requiresMfa +
                 '}';
     }
 }

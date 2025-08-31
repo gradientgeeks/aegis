@@ -1,0 +1,39 @@
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+*.txt
+
+# Logs
+*.log
+
+# Gradle cache (but keep wrapper and build output)
+.gradle/
+
+# Source code (not needed for pre-built JAR)
+src/
+
+# Scripts
+*.sh
+
+# Test reports
+build/reports/
+build/test-results/
+
+# Keep only the JAR we need
+build/classes/
+build/generated/
+build/tmp/

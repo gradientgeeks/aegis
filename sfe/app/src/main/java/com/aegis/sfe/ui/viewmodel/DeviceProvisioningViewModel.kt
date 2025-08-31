@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aegis.sfe.UCOBankApplication
 import com.aegis.sfe.data.model.ProvisioningState
-import com.aegis.sfe.data.model.SecurityCheckResult
+// import com.aegis.sfe.data.model.SecurityCheckResult // Commented out - focusing on HMAC validation and key exchange
 import com.gradientgeeks.aegis.sfe_client.provisioning.ProvisioningResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,12 +21,14 @@ class DeviceProvisioningViewModel : ViewModel() {
     private val _provisioningState = MutableStateFlow(ProvisioningState())
     val provisioningState: StateFlow<ProvisioningState> = _provisioningState.asStateFlow()
     
-    private val _securityCheckResult = MutableStateFlow<SecurityCheckResult?>(null)
-    val securityCheckResult: StateFlow<SecurityCheckResult?> = _securityCheckResult.asStateFlow()
+    // Security check is commented out - focusing on HMAC validation and key exchange
+    // private val _securityCheckResult = MutableStateFlow<SecurityCheckResult?>(null)
+    // val securityCheckResult: StateFlow<SecurityCheckResult?> = _securityCheckResult.asStateFlow()
     
     init {
         checkProvisioningStatus()
-        performSecurityCheck()
+        // Security check is commented out - focusing on HMAC validation and key exchange
+        // performSecurityCheck()
     }
     
     fun checkProvisioningStatus() {
@@ -127,6 +129,8 @@ class DeviceProvisioningViewModel : ViewModel() {
         }
     }
     
+    // Security check is commented out - focusing on HMAC validation and key exchange
+    /*
     fun performSecurityCheck() {
         try {
             val result = UCOBankApplication.aegisClient.performSecurityCheck()
@@ -168,6 +172,7 @@ class DeviceProvisioningViewModel : ViewModel() {
             )
         }
     }
+    */
     
     fun clearProvisioningData() {
         try {

@@ -6,7 +6,8 @@ import com.google.gson.annotations.SerializedName
  * Request model for device registration with the Aegis Security API.
  * 
  * Contains the necessary information for establishing a secure device identity
- * during the initial provisioning process.
+ * during the initial provisioning process, including device fingerprinting
+ * for fraud detection.
  */
 data class DeviceRegistrationRequest(
     
@@ -30,5 +31,12 @@ data class DeviceRegistrationRequest(
      * is not distributed through Google Play Store.
      */
     @SerializedName("integrityToken")
-    val integrityToken: String?
+    val integrityToken: String?,
+    
+    /**
+     * Device fingerprint containing stable hardware characteristics.
+     * Used for fraud detection and preventing device reuse after factory reset.
+     */
+    @SerializedName("deviceFingerprint")
+    val deviceFingerprint: DeviceFingerprintData
 )

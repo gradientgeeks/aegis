@@ -2,11 +2,12 @@
 <network-security-config>
     <!-- Allow cleartext traffic for development/hackathon demo -->
     <domain-config cleartextTrafficPermitted="true">
-        <!-- Your Linux machine IP -->
-        <domain includeSubdomains="true">192.168.232.12</domain>
-        <!-- Localhost for emulator -->
+        <!-- Azure Container Instances -->
+        <domain includeSubdomains="true">aegis-backend-api.southeastasia.azurecontainer.io</domain>
+        <domain includeSubdomains="true">demo-backend-api.southeastasia.azurecontainer.io</domain>
+        <!-- Local development IPs (keep for local testing) -->
+        <domain includeSubdomains="true">192.168.20.13</domain>
         <domain includeSubdomains="true">10.0.2.2</domain>
-        <!-- Any other local IPs you might use -->
         <domain includeSubdomains="true">localhost</domain>
     </domain-config>
 </network-security-config>

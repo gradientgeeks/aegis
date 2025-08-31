@@ -22,4 +22,3 @@ dependencyResolutionManagement {
 rootProject.name = "sfe"
 include(":app")
 include(":sfe-client")
-include(":sfe-client")

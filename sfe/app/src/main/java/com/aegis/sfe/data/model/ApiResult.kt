@@ -22,6 +22,8 @@ data class ProvisioningState(
     val error: String? = null
 )
 
+// Security check is commented out - focusing on HMAC validation and key exchange
+/*
 data class SecurityCheckResult(
     val isSecure: Boolean,
     val rootDetected: Boolean,
@@ -32,3 +34,4 @@ data class SecurityCheckResult(
     val mockLocationEnabled: Boolean,
     val warnings: List<String> = emptyList()
 )
+*/
