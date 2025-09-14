@@ -376,7 +376,9 @@ MIT License
 ---
 
 **Version:** 1.0.7
+
 **Last Updated:** September 2025
+
 **Maintained by:** Gradient Geeks
 
 
