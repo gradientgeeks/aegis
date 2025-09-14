@@ -1,7 +1,7 @@
 import { type LoginCredentials, type AuthState } from '../types';
 import axios from 'axios';
 
-const AUTH_API_URL = 'http://localhost:8080/api/auth';
+const AUTH_API_URL = 'http://localhost:8888/api/auth';
 
 export const authService = {
   login: async (credentials: LoginCredentials): Promise<AuthState> => {

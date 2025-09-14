@@ -8,8 +8,8 @@ class UCOBankApplication : Application() {
     
     companion object {
         // Configuration constants - Azure endpoints
-        const val AEGIS_API_BASE_URL = "http://192.168.20.13:8080/api"
-        const val BANK_API_BASE_URL = "http://192.168.20.13:8081/api/v1"
+        const val AEGIS_API_BASE_URL = "http://192.168.106.12:8888/api"
+        const val BANK_API_BASE_URL = "http://192.168.106.12:8081/api/v1"
 
         
 
