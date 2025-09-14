@@ -9,7 +9,7 @@ import {
   type FraudReport 
 } from '../types';
 
-const API_BASE_URL = 'http://localhost:8080/api/admin';
+const API_BASE_URL = 'http://localhost:8888/api/admin';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

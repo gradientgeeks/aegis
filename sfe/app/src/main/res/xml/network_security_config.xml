@@ -6,7 +6,9 @@
         <domain includeSubdomains="true">aegis-backend-api.southeastasia.azurecontainer.io</domain>
         <domain includeSubdomains="true">demo-backend-api.southeastasia.azurecontainer.io</domain>
         <!-- Local development IPs (keep for local testing) -->
-        <domain includeSubdomains="true">192.168.20.13</domain>
+        <domain includeSubdomains="true">192.168.106.12</domain>
+        <domain includeSubdomains="true">100.74.24.118</domain>
+
         <domain includeSubdomains="true">10.0.2.2</domain>
         <domain includeSubdomains="true">localhost</domain>
     </domain-config>
