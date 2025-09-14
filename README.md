@@ -54,8 +54,8 @@ flowchart TD
     end
 
     subgraph Admin[Admin & Monitoring]
-        Portal[Admin Portal (React)]
-        Dashboard[Bank Dashboard (React)]
+        Portal[Admin Portal - React]
+        Dashboard[Bank Dashboard - React]
     end
 
     SFEClient -->|Provision/Sign| AegisAPI
